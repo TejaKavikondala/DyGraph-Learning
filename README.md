@@ -83,28 +83,6 @@ python preprocess_all_data.py
 ```
 ---
 
-## 🏗 Proposed Architecture
-
-### ✅ 1. Adaptive Temporal Smoothing (ATS)
-Learns how past interactions decay over time:
-\[
-w_{ij} = \exp(-\lambda (t - t_j))
-\]
-
-### ✅ 2. Graph-Based Hierarchical Attention (GHA)
-Incorporates node centrality into attention:
-\[
-\alpha_{uv} = \text{Softmax}\left( \frac{(q_u + c_u)(k_v + c_v)^\top}{\sqrt{d_k}} \right)
-\]
-
-### ✅ 3. Weighted Temporal Neighbor Similarity (WTNS)
-Improves co-occurrence encoding:
-\[
-WTNS(u, v, w) = \frac{w_{uw} \cdot c_w \cdot w_{vw}}{\sqrt{(w_{uw}^2 + c_w^2)(w_{vw}^2 + c_w^2)}}
-\]
-
------
-
 ## Dynamic Graph Learning Models
 
 Eight popular continuous-time dynamic graph learning methods are included in DyGLib, including 
