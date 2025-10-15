@@ -1,14 +1,8 @@
-# Towards Better Dynamic Graph Learning: New Architecture and Unified Library
-This repository is built for the paper [Towards Better Dynamic Graph Learning: New Architecture and Unified Library](https://arxiv.org/abs/2303.13047).
+# DyGFormer-Extended: Dynamic Graph Learning with ATS, GHA, and WTNS
 
-🔔 If you have any questions or suggestions, please feel free to let us know. 
-You can directly email [Le Yu](https://yule-buaa.github.io/) using the email address yule@buaa.edu.cn or post an issue on this repository.
+> **A dynamic graph learning architecture extending DyGFormer with Adaptive Temporal Smoothing (ATS), Graph-Based Hierarchical Attention (GHA), and Weighted Temporal Neighbor Similarity (WTNS) to better capture temporal, structural, and relational dynamics.**
 
-## 💥 News 💥
-
-- 🔥🔥🔥[2023/09] Our paper is accepted by **NeurIPS 2023 (Poster)**. The camera ready version is coming soon.
-- 🔥🔥🔥[2023/09] DyGFormer is evaluated on [TGB Leaderboards](https://tgb.complexdatalab.com) and it currently **ranks first** on tgbl-wiki-v2 and tgbl-coin. 
-  It also performs good on other datasets. See our other repository [DyGLib_TGB](https://github.com/yule-BUAA/DyGLib_TGB) for more details.
+---
 
 ## Overview
 
@@ -16,18 +10,65 @@ Dynamic Graph Library (DyGLib) is an open-source toolkit with standard training 
 which aims to promote standard, scalable, and reproducible dynamic graph learning research. Diverse benchmark datasets and thorough baselines are involved in DyGLib.
 ![](figures/DyGLib_procedure.jpg)
 
+**DyGFormer-Extended** improves upon DyGFormer by introducing:
+✅ Adaptive Temporal Smoothing (ATS)  
+✅ Graph-Based Hierarchical Attention (GHA)  
+✅ Weighted Temporal Neighbor Similarity (WTNS)
 
-## Benchmark Datasets and Preprocessing
+These enhancements improve:
+- Temporal decay handling
+- Structural awareness via node centrality
+- Neighbor interaction modeling
+- Performance on dynamic link prediction & node classification
 
-Fourteen datasets are used in DyGLib, including Wikipedia, Reddit, MOOC, LastFM, Myket, Enron, Social Evo., UCI, Flights, Can. Parl., 
-US Legis., UN Trade, UN Vote, and Contact. The first five datasets are bipartite, and the others only contain nodes with a single type.
+## 🎯 Motivation
 
-Most of the used original dynamic graph datasets come from [Towards Better Evaluation for Dynamic Link Prediction](https://openreview.net/forum?id=1GVpwr2Tfdg), 
-which can be downloaded [here](https://zenodo.org/record/7213796#.Y1cO6y8r30o). 
-Please download them and put them in ```DG_data``` folder. 
-The Myket dataset comes from [Effect of Choosing Loss Function when Using T-batching for Representation Learning on Dynamic Networks](https://arxiv.org/abs/2308.06862) and 
-can be accessed from [here](https://github.com/erfanloghmani/myket-android-application-market-dataset). 
-The original and preprocessed files for Myket dataset are included in this repository.
+While DyGFormer excels in long-term dependencies, it struggles when:
+❌ Interactions are short-lived  
+❌ Temporal importance varies  
+❌ Structural hierarchy (node influence) matters  
+❌ Co-occurrence between neighbors is oversimplified
+
+**Goal:** Build a model that adapts to diverse temporal patterns, leverages structural hierarchies, and better captures meaningful neighbor interactions.
+
+---
+
+## 🧠 Key Contributions
+
+✅ **Adaptive Temporal Smoothing (ATS)**  
+Learns a temporal decay parameter to weight recent/older interactions dynamically.
+
+✅ **Graph-Based Hierarchical Attention (GHA)**  
+Introduces node centrality directly into attention scores for structural importance.
+
+✅ **Weighted Temporal Neighbor Similarity (WTNS)**  
+Enhances co-occurrence encoding using temporal weights + centrality.
+
+✅ **Improved performance** on short, long, and mixed temporal datasets.
+
+✅ **Scalable & efficient** – suitable for large dynamic graphs.
+
+---
+
+## 📂 Datasets Used
+
+| Dataset   | Nodes | Edges | Dynamics         | Notes |
+|-----------|------:|------:|------------------|------|
+| MOOC      | 7,047 | 411K  | Short-lived       | Student ↔ content interactions |
+| Wikipedia | 9,227 | 157K  | Long-term         | User edits with features |
+| Social Evo| 74    | 2M    | Mixed             | Physical proximity events |
+| Dgraph    | 3.7M  | 4.3M  | Short-lived       | Large-scale social network |
+
+---
+
+## 🔄 Data Preprocessing Pipeline
+
+1️⃣ Load raw interaction data  
+2️⃣ Extract (source, destination, timestamp, label, features)  
+3️⃣ Re-index nodes (start from 1)  
+4️⃣ Generate edge features (.npy)  
+5️⃣ Initialize node features (.npy)  
+6️⃣ Validate integrity (edges match features)  
 
 We can run ```preprocess_data/preprocess_data.py``` for pre-processing the datasets.
 For example, to preprocess the *Wikipedia* dataset, we can run the following commands:
@@ -40,6 +81,29 @@ We can also run the following commands to preprocess all the original datasets a
 cd preprocess_data/
 python preprocess_all_data.py
 ```
+---
+
+## 🏗 Proposed Architecture
+
+### ✅ 1. Adaptive Temporal Smoothing (ATS)
+Learns how past interactions decay over time:
+\[
+w_{ij} = \exp(-\lambda (t - t_j))
+\]
+
+### ✅ 2. Graph-Based Hierarchical Attention (GHA)
+Incorporates node centrality into attention:
+\[
+\alpha_{uv} = \text{Softmax}\left( \frac{(q_u + c_u)(k_v + c_v)^\top}{\sqrt{d_k}} \right)
+\]
+
+### ✅ 3. Weighted Temporal Neighbor Similarity (WTNS)
+Improves co-occurrence encoding:
+\[
+WTNS(u, v, w) = \frac{w_{uw} \cdot c_w \cdot w_{vw}}{\sqrt{(w_{uw}^2 + c_w^2)(w_{vw}^2 + c_w^2)}}
+\]
+
+-----
 
 ## Dynamic Graph Learning Models
 
@@ -127,25 +191,3 @@ python evaluate_node_classification.py --dataset_name wikipedia --model_name DyG
 python evaluate_node_classification.py --dataset_name wikipedia --model_name DyGFormer --load_best_configs --num_runs 5 --gpu 0
 ```
 
-
-## Acknowledgments
-
-We are grateful to the authors of 
-[TGAT](https://github.com/StatsDLMathsRecomSys/Inductive-representation-learning-on-temporal-graphs), 
-[TGN](https://github.com/twitter-research/tgn), 
-[CAWN](https://github.com/snap-stanford/CAW), 
-[EdgeBank](https://github.com/fpour/DGB), and
-[GraphMixer](https://github.com/CongWeilin/GraphMixer) for making their project codes publicly available.
-
-
-## Citation
-
-Please consider citing our paper when using this project.
-```{bibtex}
-@article{yu2023towards,
-  title={Towards Better Dynamic Graph Learning: New Architecture and Unified Library},
-  author={Yu, Le and Sun, Leilei and Du, Bowen and Lv, Weifeng},
-  journal={Advances in Neural Information Processing Systems},
-  year={2023}
-}
-```
